@@ -63,7 +63,6 @@ decVolumeBtn.addEventListener("click", () => {
     audio.volume = v;
 });
 
-
 function secondsToMinutes(secs) {
     const min = String(parseInt(secs / 60)).padStart(2, "0");
     const sec = String(parseInt(secs % 60)).padStart(2, "0");

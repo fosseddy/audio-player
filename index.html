@@ -7,15 +7,34 @@
     <title>Audio Player</title>
 </head>
 <body>
-    <button id="play-btn">play</button>
-    <button id="pause-btn">pause</button>
-    <button id="reset-btn">reset</button>
+    <div id="player">
+        <div id="controls">
+            <div>
+                <p>Duration:</p>
+                <p id="duration"></p>
 
-    <p>Duration:</p>
-    <p id="duration"></p>
+                <p>Current Time:</p>
+                <p id="current-time"></p>
+            </div>
 
-    <p>Current Time:</p>
-    <p id="current-time"></p>
+            <button id="play-btn">play</button>
+            <button id="pause-btn">pause</button>
+            <button id="reset-btn">reset</button>
+        </div>
+
+        <br />
+        <hr />
+        <br />
+
+        <div id="playlist">
+            <p>There is going to be the list of songs</p>
+        </div>
+    </div>
+
+    <br />
+    <br />
+    <br />
+
 
     <p>Volume:</p>
     <p id="volume"></p>

@@ -3,3 +3,23 @@
     margin: 0;
     box-sizing: border-box;
 }
+
+html, body {
+    height: 100%;
+}
+
+body {
+    background: darkslateblue;
+    padding: 5rem;
+}
+
+.player {
+    background: white;
+    padding: 1rem 2rem;
+}
+
+/* DEBUG */
+.b { border: 1px solid; }
+.b-red { border-color: red; }
+.b-green { border-color: green; }
+.b-blue { border-color: blue; }

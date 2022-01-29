@@ -18,6 +18,19 @@ body {
     padding: 1rem 2rem;
 }
 
+.icon {
+    fill: none;
+    stroke: black;
+}
+
+.svg {
+    width: 32px;
+    height: 32px;
+    stroke-width: 2px;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
 /* DEBUG */
 .b { border: 1px solid; }
 .b-red { border-color: red; }

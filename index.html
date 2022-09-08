@@ -7,11 +7,22 @@
     <title>Audio Player</title>
   </head>
   <body>
-    <input type="file" accept="audio/*" multiple />
-    <div class="player b">
-      <ul id="song-list"></ul>
+    <div class="player">
+      <!-- @TODO(art): wrap label into something so file select triggers
+                       only on svg width click -->
+      <label class="file-input" for="song-input">
+        <svg class="svg icon btn">
+          <use href="#plus" />
+        </svg>
+        <input id="song-input"
+               type="file" accept="audio/*" multiple
+               style="display: none;"
+        />
+      </label>
 
-      <div>
+      <ul id="song-list" class="song-list"></ul>
+
+      <div class="controls">
         <!--svg class="svg icon">
           <use href="#shuffle" />
         </svg>
@@ -30,11 +41,11 @@
           </svg>
         </button>
 
-        <!--button id="btn-pause" class="btn">
+        <button id="btn-pause" class="btn hidden">
           <svg class="svg icon">
             <use href="#pause" />
           </svg>
-        </button-->
+        </button>
 
         <!--svg class="svg icon">
           <use href="#chevrone-right" />
@@ -48,6 +59,7 @@
           <use href="#burger" />
         </svg-->
       </div>
+
     </div>
 
     <script src="main.js"></script>
@@ -98,6 +110,18 @@
           <line x1="3" y1="6" x2="21" y2="6"></line>
           <line x1="3" y1="18" x2="21" y2="18"></line>
         </symbol>
+
+        <symbol id="plus" viewBox="0 0 24 24">
+          <line x1="12" y1="5" x2="12" y2="19"></line>
+          <line x1="5" y1="12" x2="19" y2="12"></line>
+        </symbol>
+
+        <!--svg width="24" height="24"
+             stroke="currentColor" stroke-width="2"
+             fill="none" stroke-linecap="round"
+             stroke-linejoin="round"
+             class="css-i6dzq1"
+        -->
       </defs>
     </svg>
   </body>

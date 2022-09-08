@@ -1,23 +1,34 @@
-//const btnPrefix = "btn";
-//const btns = ["play"];
-//
-//const buttons = {};
-//
-//for (const btn of btns) {
-//  const id = `#${btnPrefix}-${btn}`;
-//  const elem = document.querySelector(id);
-//  if (!elem) {
-//    throw new Error("button not found in DOM: " + id);
-//  }
-//  buttons[btn] = elem;
-//}
-
 let uid = 0;
 
-let songs = [];
-const songList = document.querySelector("#song-list");
+window.state = {
+  songs: [],
+  currentSong: null
+};
 
-document.querySelector("input[type='file'").addEventListener("change", e => {
+const ui = {
+  songList: document.querySelector("#song-list"),
+  songInput: document.querySelector("input[type='file']"),
+  buttons: {
+    play: document.querySelector("#btn-play"),
+    pause: document.querySelector("#btn-pause")
+  }
+};
+
+ui.buttons.play.addEventListener("click", () => {
+  if (!state.currentSong) return;
+  state.currentSong.audio.play();
+  ui.buttons.play.classList.add("hidden");
+  ui.buttons.pause.classList.remove("hidden");
+});
+
+ui.buttons.pause.addEventListener("click", () => {
+  if (!state.currentSong) return;
+  state.currentSong.audio.pause();
+  ui.buttons.pause.classList.add("hidden");
+  ui.buttons.play.classList.remove("hidden");
+});
+
+ui.songInput.addEventListener("change", e => {
   const { files } = e.target;
   if (!files.length) return;
 
@@ -34,8 +45,12 @@ document.querySelector("input[type='file'").addEventListener("change", e => {
     song.audio.addEventListener("canplaythrough", () => {
       tmp.push(song);
 
+      // add songs when all of them are loaded
       if (tmp.length === files.length - errcount) {
-        songs.push(...tmp);
+        state.songs.push(...tmp);
+        if (!state.currentSong) {
+          state.currentSong = state.songs[0];
+        }
         makeSongList();
       }
     });
@@ -50,22 +65,29 @@ document.querySelector("input[type='file'").addEventListener("change", e => {
 });
 
 function makeSongList() {
-  clearChildren(songList);
+  clearChildren(ui.songList);
 
   const lis = [];
-  for (const s of songs) {
+  for (const s of state.songs) {
     const li = document.createElement("li");
-    li.textContent = `${s.name} ${s.audio.duration}`;
+    li.classList.add("song-list__item");
+    if (state.currentSong.id === s.id) {
+      li.classList.add("song-list__item--selected");
+    }
+    li.textContent = s.name;
 
     li.addEventListener("click", () => {
-      URL.revokeObjectURL(s.audio.src);
-      songs = songs.filter(item => item.id !== s.id);
-      li.remove();
+      state.currentSong = s;
+      for (const l of lis) {
+        l.classList.remove("song-list__item--selected");
+      }
+      li.classList.add("song-list__item--selected");
     });
 
     lis.push(li);
   }
-  songList.append(...lis);
+
+  ui.songList.append(...lis);
 }
 
 function clearChildren(container) {

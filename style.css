@@ -16,6 +16,10 @@ body {
   padding: 5rem 0;
 }
 
+ul {
+  list-style: none;
+}
+
 .player {
   background: white;
   padding: 1rem 2rem;
@@ -40,6 +44,11 @@ body {
   opacity: .5;
 }
 
+.file-input {
+  display: flex;
+  justify-content: flex-end;
+}
+
 .icon {
   fill: none;
   stroke: black;
@@ -51,6 +60,39 @@ body {
   stroke-width: 2px;
   stroke-linecap: round;
   stroke-linejoin: round;
+}
+
+.controls {
+  display: flex;
+}
+
+.hidden {
+  display: none;
+}
+
+.song-list {
+  /* @TODO(art): do not display if song-list is empty, so we don't have to
+   *             use min/max-height?
+  */
+  min-height: 0px;
+  max-height: 400px;
+  overflow-y: scroll;
+}
+
+.song-list__item {
+  padding: 1rem;
+  background-color: lightgray;
+}
+
+.song-list__item:hover {
+  background-color: blue;
+  color: white;
+  cursor: pointer;
+}
+
+.song-list__item--selected {
+  background-color: blue;
+  color: white;
 }
 
 /* DEBUG */

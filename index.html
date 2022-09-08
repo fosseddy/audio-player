@@ -7,38 +7,47 @@
     <title>Audio Player</title>
   </head>
   <body>
+    <input type="file" accept="audio/*" multiple />
     <div class="player b">
-      <svg class="svg icon">
-        <use href="#shuffle" />
-      </svg>
+      <ul id="song-list"></ul>
 
-      <svg class="svg icon">
-        <use href="#repeat" />
-      </svg>
+      <div>
+        <!--svg class="svg icon">
+          <use href="#shuffle" />
+        </svg>
 
-      <svg class="svg icon">
-        <use href="#chevrone-left" />
-      </svg>
+        <svg class="svg icon">
+          <use href="#repeat" />
+        </svg>
 
-      <svg class="svg icon">
-        <use href="#play" />
-      </svg>
+        <svg class="svg icon">
+          <use href="#chevrone-left" />
+        </svg-->
 
-      <svg class="svg icon">
-        <use href="#pause" />
-      </svg>
+        <button id="btn-play" class="btn">
+          <svg class="svg icon">
+            <use href="#play" />
+          </svg>
+        </button>
 
-      <svg class="svg icon">
-        <use href="#chevrone-right" />
-      </svg>
+        <!--button id="btn-pause" class="btn">
+          <svg class="svg icon">
+            <use href="#pause" />
+          </svg>
+        </button-->
 
-      <svg class="svg icon">
-        <use href="#volume" />
-      </svg>
+        <!--svg class="svg icon">
+          <use href="#chevrone-right" />
+          </svg>
 
-      <svg class="svg icon">
-        <use href="#burger" />
-      </svg>
+          <svg class="svg icon">
+          <use href="#volume" />
+          </svg>
+
+          <svg class="svg icon">
+          <use href="#burger" />
+        </svg-->
+      </div>
     </div>
 
     <script src="main.js"></script>

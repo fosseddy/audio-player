@@ -1,9 +1,11 @@
 let uid = 0;
 
-window.state = {
+const state = {
   songs: [],
   currentSong: null
 };
+
+window.state = state;
 
 const ui = {
   songList: document.querySelector("#song-list"),
@@ -48,10 +50,13 @@ ui.songInput.addEventListener("change", e => {
       // add songs when all of them are loaded
       if (tmp.length === files.length - errcount) {
         state.songs.push(...tmp);
-        if (!state.currentSong) {
+
+        if (!state.currentSong && state.songs.length) {
           state.currentSong = state.songs[0];
         }
+
         makeSongList();
+        e.target.value = "";
       }
     });
 
@@ -70,16 +75,18 @@ function makeSongList() {
   const lis = [];
   for (const s of state.songs) {
     const li = document.createElement("li");
+
     li.classList.add("song-list__item");
     if (state.currentSong.id === s.id) {
       li.classList.add("song-list__item--selected");
     }
+
     li.textContent = s.name;
 
     li.addEventListener("click", () => {
       state.currentSong = s;
-      for (const l of lis) {
-        l.classList.remove("song-list__item--selected");
+      for (const it of lis) {
+        it.classList.remove("song-list__item--selected");
       }
       li.classList.add("song-list__item--selected");
     });

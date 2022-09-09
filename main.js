@@ -1,36 +1,68 @@
-let uid = 0;
-
-const state = {
-  songs: [],
-  currentSong: null
-};
-
-window.state = state;
-
-const ui = {
-  songList: document.querySelector("#song-list"),
-  songInput: document.querySelector("input[type='file']"),
-  buttons: {
-    play: document.querySelector("#btn-play"),
-    pause: document.querySelector("#btn-pause")
+class SongList {
+  constructor() {
+    this.container = document.querySelector("#song-list");
+    console.assert(this.container != null);
+    this.items = [];
+    this.songs = [];
+    this.currSong = null;
   }
-};
 
-ui.buttons.play.addEventListener("click", () => {
-  if (!state.currentSong) return;
-  state.currentSong.audio.play();
-  ui.buttons.play.classList.add("hidden");
-  ui.buttons.pause.classList.remove("hidden");
-});
+  addSongs(sx) {
+    if (!sx.length) return;
 
-ui.buttons.pause.addEventListener("click", () => {
-  if (!state.currentSong) return;
-  state.currentSong.audio.pause();
-  ui.buttons.pause.classList.add("hidden");
-  ui.buttons.play.classList.remove("hidden");
-});
+    this.songs.push(...sx);
 
-ui.songInput.addEventListener("change", e => {
+    if (this.currSong == null) {
+      this.currSong = 0;
+    }
+  }
+
+  getCurrSong() {
+    console.assert(this.currSong != null);
+    return this.songs[this.currSong];
+  }
+
+  draw() {
+    this.clearItems();
+    for (let i = 0; i < this.songs.length; i++) {
+      this.items[i]= this.createItem(i);
+    }
+    this.container.append(...this.items);
+  }
+
+  createItem(idx) {
+    const li = document.createElement("li");
+    li.classList.add("song-list__item");
+
+    console.assert(this.currSong != null);
+    if (this.currSong === idx) {
+      li.classList.add("song-list__item--selected");
+    }
+
+    li.textContent = this.songs[idx].name;
+
+    li.addEventListener("click", () => {
+      console.assert(this.currSong != null);
+      this.items[this.currSong].classList.remove("song-list__item--selected");
+
+      li.classList.add("song-list__item--selected");
+      this.currSong = idx;
+    });
+
+    return li;
+  }
+
+  clearItems() {
+    for (const it of this.items) {
+      it.remove();
+    }
+    this.items = [];
+  }
+}
+
+const songList = new SongList();
+
+document.querySelector("input[type='file']").addEventListener("change", e => {
   const { files } = e.target;
   if (!files.length) return;
 
@@ -39,7 +71,6 @@ ui.songInput.addEventListener("change", e => {
 
   for (const f of files) {
     const song = {
-      id: uid++,
       name: f.name,
       audio: new Audio(URL.createObjectURL(f))
     };
@@ -49,14 +80,9 @@ ui.songInput.addEventListener("change", e => {
 
       // add songs when all of them are loaded
       if (tmp.length === files.length - errcount) {
-        state.songs.push(...tmp);
-
-        if (!state.currentSong && state.songs.length) {
-          state.currentSong = state.songs[0];
-        }
-
-        makeSongList();
         e.target.value = "";
+        songList.addSongs(tmp);
+        songList.draw();
       }
     });
 
@@ -69,36 +95,22 @@ ui.songInput.addEventListener("change", e => {
   }
 });
 
-function makeSongList() {
-  clearChildren(ui.songList);
+const controls = {
+  play: document.querySelector("#btn-play"),
+  pause: document.querySelector("#btn-pause")
+};
 
-  const lis = [];
-  for (const s of state.songs) {
-    const li = document.createElement("li");
+controls.play.addEventListener("click", () => {
+  if (songList.currSong == null) return;
+  songList.getCurrSong().audio.play();
+  controls.play.classList.add("hidden");
+  controls.pause.classList.remove("hidden");
+});
 
-    li.classList.add("song-list__item");
-    if (state.currentSong.id === s.id) {
-      li.classList.add("song-list__item--selected");
-    }
+controls.pause.addEventListener("click", () => {
+  if (songList.currSong == null) return;
+  songList.getCurrSong().audio.pause();
+  controls.pause.classList.add("hidden");
+  controls.play.classList.remove("hidden");
+});
 
-    li.textContent = s.name;
-
-    li.addEventListener("click", () => {
-      state.currentSong = s;
-      for (const it of lis) {
-        it.classList.remove("song-list__item--selected");
-      }
-      li.classList.add("song-list__item--selected");
-    });
-
-    lis.push(li);
-  }
-
-  ui.songList.append(...lis);
-}
-
-function clearChildren(container) {
-  while (container.firstChild) {
-    container.removeChild(container.firstChild);
-  }
-}

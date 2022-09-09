@@ -9,7 +9,8 @@
   <body>
     <div class="player">
       <!-- @TODO(art): wrap label into something so file select triggers
-                       only on svg width click -->
+                       only on svg width click
+      -->
       <label class="file-input" for="song-input">
         <svg class="svg icon btn">
           <use href="#plus" />
@@ -21,6 +22,17 @@
       </label>
 
       <ul id="song-list" class="song-list"></ul>
+
+      <div id="progress" class="progress b b-red">
+        <p id="progress-start" class="progress__start"></p>
+
+        <div id="progress-indicator" class="progress__indicator">
+          <div id="progress-bar" class="indicator__bar"></div>
+          <div id="progress-circle" class="indicator__circle"></div>
+        </div>
+
+        <p id="progress-end" class="progress__end"></p>
+      </div>
 
       <div class="controls">
         <!--svg class="svg icon">

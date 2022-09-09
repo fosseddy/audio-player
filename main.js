@@ -14,6 +14,7 @@ class SongList {
 
     if (this.currSong == null) {
       this.currSong = 0;
+      setProgress(this.getCurrSong().audio);
     }
   }
 
@@ -46,6 +47,8 @@ class SongList {
       this.items[this.currSong].classList.remove("song-list__item--selected");
 
       li.classList.add("song-list__item--selected");
+      setProgress(this.songs[idx].audio);
+
       this.currSong = idx;
     });
 
@@ -61,6 +64,70 @@ class SongList {
 }
 
 const songList = new SongList();
+
+const progress = {
+  div: document.querySelector("#progress"),
+  start: document.querySelector("#progress-start"),
+  end: document.querySelector("#progress-end"),
+  indicator: document.querySelector("#progress-indicator"),
+  bar: document.querySelector("#progress-bar"),
+  circle: document.querySelector("#progress-circle")
+};
+
+//mousedown
+//mouseup
+//
+//mouseenter
+//mouseleave
+//
+//mousemove
+//mouseout
+//
+//mouseover
+
+let dragging = false;
+progress.circle.addEventListener("mousedown", e => {
+  if (!dragging) dragging = true;
+});
+
+progress.div.addEventListener("mouseup", e => {
+  if (dragging) dragging = false;
+});
+
+progress.div.addEventListener("mouseleave", e => {
+  if (dragging) dragging = false;
+});
+
+const brect = progress.indicator.getBoundingClientRect();
+progress.div.addEventListener("mousemove", e => {
+  if (dragging) {
+    const { clientX } = e;
+    const { x, right } = brect;
+    if (clientX <= x) {
+      progress.bar.style.width = "0%";
+    } else if (clientX >= right) {
+      progress.bar.style.width = "100%";
+    } else {
+      let s = right - x;
+      let t = clientX - x - 10;
+      progress.bar.style.width = Math.floor(t / s * 100).toString() + "%";
+    }
+  }
+});
+
+function setProgress(audio) {
+  const ct = audio.currentTime;
+  let min = Math.floor(ct / 60).toString().padStart(2, "0");
+  let sec = Math.floor(ct % 60).toString().padStart(2, "0");
+  progress.start.textContent = `${min}:${sec}`;
+
+  const d = audio.duration;
+  min = Math.floor(d / 60).toString().padStart(2, "0");
+  sec = Math.floor(d % 60).toString().padStart(2, "0");
+  progress.end.textContent = `${min}:${sec}`;
+
+  progress.bar.style.width = Math.floor((ct / d) * 100).toString() + "%";
+}
 
 document.querySelector("input[type='file']").addEventListener("change", e => {
   const { files } = e.target;
@@ -91,6 +158,10 @@ document.querySelector("input[type='file']").addEventListener("change", e => {
       console.error(song.audio.error);
       URL.revokeObjectURL(song.audio.src);
       errcount++;
+    });
+
+    song.audio.addEventListener("timeupdate", () => {
+      setProgress(song.audio);
     });
   }
 });

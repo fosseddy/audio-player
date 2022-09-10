@@ -26,35 +26,6 @@ ul {
   width: 500px;
 }
 
-.btn {
-  border: none;
-  background-color: white;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-}
-
-.btn {
-  stroke: red;
-}
-
-.btn:hover {
-  opacity: .5;
-}
-
-.file-input {
-  display: flex;
-  justify-content: flex-end;
-  padding: 1rem 2rem;
-}
-
-.icon {
-  fill: none;
-  stroke: black;
-}
-
 .svg {
   width: 32px;
   height: 32px;
@@ -63,74 +34,13 @@ ul {
   stroke-linejoin: round;
 }
 
-.controls {
-  display: flex;
-  padding: 1rem 2rem;
-}
-
-.hidden {
-  display: none;
-}
-
-.song-list {
-  max-height: 400px;
-  overflow-y: auto;
-}
-
-.song-list__item {
-  padding: 1.6rem 2.2rem;
-  background-color: whitesmoke;
-}
-
-.song-list__item:hover {
-  background-color: cornflowerblue;
-  color: white;
-  cursor: pointer;
-}
-
-.song-list__item--selected {
-  background-color: cornflowerblue;
-  color: white;
-}
-
-.progress {
-  display: flex;
-  align-items: center;
-  padding: 1rem 2.2rem;
-}
-
-.progress__start {
-}
-
-.progress__end {
-}
-
-.progress__indicator {
-  display: flex;
-  align-items: center;
-
-  background-color: lightgray;
-  width: 100%;
-  height: 5px;
-
-  margin: 0 2rem;
-}
-
-.indicator__bar {
-  background-color: red;
-  width: 0%;
-  height: 5px;
-}
-
-.indicator__circle {
-  background-color: black;
-  border-radius: 50%;
-  width: 20px;
-  height: 20px;
+.icon {
+  fill: none;
+  stroke: black;
 }
 
 /* DEBUG */
-.b { border: 1px solid; }
+.b { border: 1px solid black; }
 .b-red { border-color: red; }
 .b-green { border-color: green; }
 .b-blue { border-color: blue; }

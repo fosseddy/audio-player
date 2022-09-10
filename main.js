@@ -9,9 +9,19 @@ const state = {
   currSong: 0 // first song by default
 };
 
+function getCurrentSong() {
+  assert(state.songs.length > 0);
+  assert(state.currSong >= 0);
+  return state.songs[state.currSong];
+}
+
+// Debug
 window.state = state;
 
-document.querySelector("input[type='file']").addEventListener("change", e => {
+const fileInput = document.querySelector("input[type='file']");
+assert(fileInput != null);
+
+fileInput.addEventListener("change", e => {
   const { files } = e.target;
   if (!files.length) return;
 
@@ -30,7 +40,7 @@ document.querySelector("input[type='file']").addEventListener("change", e => {
     s.audio.addEventListener("canplaythrough", () => {
       tmp.push(s);
 
-      // @NOTE(art): save files only when all are loaded
+      // @NOTE(art): save songs only when all are loaded
       // @TODO(art): show some loading indicator to user?
       // @TODO(art): songs are saved out of order
       if (tmp.length === filesLen - errcount) {
@@ -75,6 +85,12 @@ function createSongListItem(idx) {
   }
 
   li.addEventListener("click", () => {
+    const song = getCurrentSong();
+    if (!song.audio.paused) {
+      song.audio.pause();
+    }
+    song.audio.currentTime = 0;
+
     state.currSong = idx;
     drawSongList();
   });
@@ -87,3 +103,17 @@ function clearChildren(container) {
     container.removeChild(container.firstChild);
   }
 }
+
+const btnPlay = document.querySelector("#btn-play");
+assert(btnPlay != null);
+btnPlay.addEventListener("click", () => {
+  if (!state.songs.length) return;
+  getCurrentSong().audio.play();
+});
+
+const btnPause = document.querySelector("#btn-pause");
+assert(btnPause != null);
+btnPause.addEventListener("click", () => {
+  if (!state.songs.length) return;
+  getCurrentSong().audio.pause();
+});

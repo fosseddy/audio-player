@@ -7,7 +7,13 @@ function assert(cond, msg = null) {
 const state = {
   songs: [],
   currSong: 0, // first song by default
-  songListItems: []
+
+  songListItems: [],
+
+  shuffleEnabled: false,
+  shuffledSongs: [],
+
+  repeatEnabled: false
 };
 
 function getCurrentSong() {
@@ -61,6 +67,22 @@ fileInput.addEventListener("change", e => {
       URL.revokeObjectURL(s.audio.src);
       errcount++;
     });
+
+    s.audio.addEventListener("ended", () => {
+      if (state.repeatEnabled) {
+        resetAudio(s);
+        s.audio.play();
+      } else {
+        resetAudio(s);
+        state.currSong += 1;
+        if (state.currSong >= state.songs.length) {
+          state.currSong = 0;
+        }
+        drawSongList();
+        getCurrentSong().audio.play();
+        // @TODO(art): check if buttons should be updated
+      }
+    });
   }
 
   e.target.value = "";
@@ -71,7 +93,9 @@ const songList = document.querySelector("#song-list") ?? assert(false);
 function drawSongList() {
   clearSongListItems();
 
-  for (let i = 0; i < state.songs.length; i++) {
+  let songs = state.shuffleEnabled ? state.shuffledSongs : state.songs;
+
+  for (let i = 0; i < songs.length; i++) {
     state.songListItems.push(createSongListItem(i));
   }
 
@@ -79,8 +103,9 @@ function drawSongList() {
 }
 
 function createSongListItem(idx) {
+  let songs = state.shuffleEnabled ? state.shuffledSongs : state.songs;
   const li = document.createElement("li");
-  li.textContent = state.songs[idx].name;
+  li.textContent = songs[idx].name;
 
   li.style.padding = "1rem";
 
@@ -89,11 +114,7 @@ function createSongListItem(idx) {
   }
 
   li.addEventListener("click", () => {
-    const song = getCurrentSong();
-    if (!song.audio.paused) {
-      song.audio.pause();
-    }
-    song.audio.currentTime = 0;
+    resetAudio(getCurrentSong());
 
     state.songListItems[state.currSong].style.background = "none";
     li.style.background = "red";
@@ -115,3 +136,93 @@ btnPause.addEventListener("click", () => {
   if (!state.songs.length) return;
   getCurrentSong().audio.pause();
 });
+
+const btnRepeat = document.querySelector("#btn-repeat") ?? assert(false);
+btnRepeat.addEventListener("click", () => {
+  if (state.repeatEnabled) {
+    state.repeatEnabled = false;
+    btnRepeat.style.background = "buttonface";
+  } else {
+    state.repeatEnabled = true;
+    btnRepeat.style.background = "green";
+  }
+});
+
+const btnPrevSong = document.querySelector("#btn-prev-song") ?? assert(false);
+btnPrevSong.addEventListener("click", () => {
+  if (!state.songs.length) return;
+
+  const prevSong = getCurrentSong();
+  const isPrevPaused = prevSong.audio.paused;
+  resetAudio(prevSong);
+
+  state.currSong -= 1;
+  if (state.currSong < 0) {
+    state.currSong = state.songs.length - 1;
+  }
+
+  drawSongList();
+  if (!isPrevPaused) {
+    getCurrentSong().audio.play();
+  }
+});
+
+const btnNextSong = document.querySelector("#btn-next-song") ?? assert(false);
+btnNextSong.addEventListener("click", () => {
+  if (!state.songs.length) return;
+
+  const prevSong = getCurrentSong();
+  const isPrevPaused = prevSong.audio.paused;
+  resetAudio(prevSong);
+
+  state.currSong += 1;
+  if (state.currSong >= state.songs.length) {
+    state.currSong = 0;
+  }
+
+  drawSongList();
+  if (!isPrevPaused) {
+    getCurrentSong().audio.play();
+  }
+});
+
+const btnShuffle = document.querySelector("#btn-shuffle") ?? assert(false);
+btnShuffle.addEventListener("click", () => {
+  if (!state.songs.length) return;
+
+  resetAudio(getCurrentSong());
+
+  if (state.shuffleEnabled) {
+    state.shuffleEnabled = false;
+    state.shuffledSongs = []
+    btnShuffle.style.background = "buttonface";
+  } else {
+    state.shuffleEnabled = true;
+    state.shuffledSongs = shuffle(state.songs);
+    btnShuffle.style.background = "green";
+  }
+
+  state.currSong = 0;
+
+  drawSongList();
+});
+
+function resetAudio(song) {
+  song.audio.pause();
+  song.audio.currentTime = 0;
+}
+
+function shuffle(arr) {
+  const newArr = [...arr];
+
+  let ci = arr.length;
+  let ri = 0;
+
+  while (ci !== 0) {
+    ri = Math.floor(Math.random() * ci);
+    ci -= 1;
+    [newArr[ci], newArr[ri]] = [newArr[ri], newArr[ci]];
+  }
+
+  return newArr;
+}

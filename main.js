@@ -7,7 +7,6 @@ function assert(cond, msg = null) {
 const state = {
   songs: [],
   currSong: 0, // first song by default
-
   songListItems: [],
 
   shuffleEnabled: false,
@@ -16,10 +15,28 @@ const state = {
   repeatEnabled: false
 };
 
+function getSongs() {
+  return state.shuffleEnabled ? state.shuffledSongs : state.songs;
+}
+
 function getCurrentSong() {
   assert(state.songs.length > 0);
-  assert(state.currSong >= 0);
-  return state.songs[state.currSong];
+  assert(state.currSong >= 0 && state.currSong < state.songs.length);
+  return getSongs()[state.currSong];
+}
+
+function setNextSong() {
+  state.currSong += 1;
+  if (state.currSong >= state.songs.length) {
+    state.currSong = 0;
+  }
+}
+
+function setPrevSong() {
+  state.currSong -= 1;
+  if (state.currSong < 0) {
+    state.currSong = state.songs.length - 1;
+  }
 }
 
 function clearSongListItems() {
@@ -74,10 +91,9 @@ fileInput.addEventListener("change", e => {
         s.audio.play();
       } else {
         resetAudio(s);
-        state.currSong += 1;
-        if (state.currSong >= state.songs.length) {
-          state.currSong = 0;
-        }
+        setNextSong();
+        // @TODO(art): should probably be something like updateSelectedSong(),
+        // not redrawing the whole list
         drawSongList();
         getCurrentSong().audio.play();
         // @TODO(art): check if buttons should be updated
@@ -93,9 +109,8 @@ const songList = document.querySelector("#song-list") ?? assert(false);
 function drawSongList() {
   clearSongListItems();
 
-  let songs = state.shuffleEnabled ? state.shuffledSongs : state.songs;
-
-  for (let i = 0; i < songs.length; i++) {
+  // @NOTE(art): we just need the length, do not need to check if shuffled
+  for (let i = 0; i < state.songs.length; i++) {
     state.songListItems.push(createSongListItem(i));
   }
 
@@ -103,9 +118,8 @@ function drawSongList() {
 }
 
 function createSongListItem(idx) {
-  let songs = state.shuffleEnabled ? state.shuffledSongs : state.songs;
   const li = document.createElement("li");
-  li.textContent = songs[idx].name;
+  li.textContent = getSongs()[idx].name;
 
   li.style.padding = "1rem";
 
@@ -152,16 +166,15 @@ const btnPrevSong = document.querySelector("#btn-prev-song") ?? assert(false);
 btnPrevSong.addEventListener("click", () => {
   if (!state.songs.length) return;
 
-  const prevSong = getCurrentSong();
-  const isPrevPaused = prevSong.audio.paused;
-  resetAudio(prevSong);
+  const prev = getCurrentSong();
+  const isPrevPaused = prev.audio.paused;
+  resetAudio(prev);
 
-  state.currSong -= 1;
-  if (state.currSong < 0) {
-    state.currSong = state.songs.length - 1;
-  }
-
+  setPrevSong()
+  // @TODO(art): should probably be something like updateSelectedSong(),
+  // not redrawing the whole list
   drawSongList();
+
   if (!isPrevPaused) {
     getCurrentSong().audio.play();
   }
@@ -171,16 +184,15 @@ const btnNextSong = document.querySelector("#btn-next-song") ?? assert(false);
 btnNextSong.addEventListener("click", () => {
   if (!state.songs.length) return;
 
-  const prevSong = getCurrentSong();
-  const isPrevPaused = prevSong.audio.paused;
-  resetAudio(prevSong);
+  const prev = getCurrentSong();
+  const isPrevPaused = prev.audio.paused;
+  resetAudio(prev);
 
-  state.currSong += 1;
-  if (state.currSong >= state.songs.length) {
-    state.currSong = 0;
-  }
-
+  setNextSong();
+  // @TODO(art): should probably be something like updateSelectedSong(),
+  // not redrawing the whole list
   drawSongList();
+
   if (!isPrevPaused) {
     getCurrentSong().audio.play();
   }

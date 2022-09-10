@@ -6,7 +6,8 @@ function assert(cond, msg = null) {
 
 const state = {
   songs: [],
-  currSong: 0 // first song by default
+  currSong: 0, // first song by default
+  songListItems: []
 };
 
 function getCurrentSong() {
@@ -15,12 +16,17 @@ function getCurrentSong() {
   return state.songs[state.currSong];
 }
 
+function clearSongListItems() {
+  for (const it of state.songListItems) {
+    it.remove();
+  }
+  state.songListItems = [];
+}
+
 // Debug
 window.state = state;
 
-const fileInput = document.querySelector("input[type='file']");
-assert(fileInput != null);
-
+const fileInput = document.querySelector("input[type=file]") ?? assert(false);
 fileInput.addEventListener("change", e => {
   const { files } = e.target;
   if (!files.length) return;
@@ -60,18 +66,16 @@ fileInput.addEventListener("change", e => {
   e.target.value = "";
 });
 
-const songList = document.querySelector("#song-list");
-assert(songList != null);
+const songList = document.querySelector("#song-list") ?? assert(false);
 
 function drawSongList() {
-  clearChildren(songList);
+  clearSongListItems();
 
-  const items = [];
   for (let i = 0; i < state.songs.length; i++) {
-    items.push(createSongListItem(i));
+    state.songListItems.push(createSongListItem(i));
   }
 
-  songList.append(...items);
+  songList.append(...state.songListItems);
 }
 
 function createSongListItem(idx) {
@@ -91,28 +95,22 @@ function createSongListItem(idx) {
     }
     song.audio.currentTime = 0;
 
+    state.songListItems[state.currSong].style.background = "none";
+    li.style.background = "red";
+
     state.currSong = idx;
-    drawSongList();
   });
 
   return li;
 }
 
-function clearChildren(container) {
-  while (container.firstChild) {
-    container.removeChild(container.firstChild);
-  }
-}
-
-const btnPlay = document.querySelector("#btn-play");
-assert(btnPlay != null);
+const btnPlay = document.querySelector("#btn-play") ?? assert(false);
 btnPlay.addEventListener("click", () => {
   if (!state.songs.length) return;
   getCurrentSong().audio.play();
 });
 
-const btnPause = document.querySelector("#btn-pause");
-assert(btnPause != null);
+const btnPause = document.querySelector("#btn-pause") ?? assert(false);
 btnPause.addEventListener("click", () => {
   if (!state.songs.length) return;
   getCurrentSong().audio.pause();

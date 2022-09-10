@@ -8,70 +8,7 @@
   </head>
   <body>
     <div class="player">
-      <!-- @TODO(art): wrap label into something so file select triggers
-                       only on svg width click
-      -->
-      <label class="file-input" for="song-input">
-        <svg class="svg icon btn">
-          <use href="#plus" />
-        </svg>
-        <input id="song-input"
-               type="file" accept="audio/*" multiple
-               style="display: none;"
-        />
-      </label>
-
-      <ul id="song-list" class="song-list"></ul>
-
-      <div id="progress" class="progress b b-red">
-        <p id="progress-start" class="progress__start"></p>
-
-        <div id="progress-indicator" class="progress__indicator">
-          <div id="progress-bar" class="indicator__bar"></div>
-          <div id="progress-circle" class="indicator__circle"></div>
-        </div>
-
-        <p id="progress-end" class="progress__end"></p>
-      </div>
-
-      <div class="controls">
-        <!--svg class="svg icon">
-          <use href="#shuffle" />
-        </svg>
-
-        <svg class="svg icon">
-          <use href="#repeat" />
-        </svg>
-
-        <svg class="svg icon">
-          <use href="#chevrone-left" />
-        </svg-->
-
-        <button id="btn-play" class="btn">
-          <svg class="svg icon">
-            <use href="#play" />
-          </svg>
-        </button>
-
-        <button id="btn-pause" class="btn hidden">
-          <svg class="svg icon">
-            <use href="#pause" />
-          </svg>
-        </button>
-
-        <!--svg class="svg icon">
-          <use href="#chevrone-right" />
-          </svg>
-
-          <svg class="svg icon">
-          <use href="#volume" />
-          </svg>
-
-          <svg class="svg icon">
-          <use href="#burger" />
-        </svg-->
-      </div>
-
+      <input type="file" accept="audio/*" multiple />
     </div>
 
     <script src="main.js"></script>
@@ -127,13 +64,6 @@
           <line x1="12" y1="5" x2="12" y2="19"></line>
           <line x1="5" y1="12" x2="19" y2="12"></line>
         </symbol>
-
-        <!--svg width="24" height="24"
-             stroke="currentColor" stroke-width="2"
-             fill="none" stroke-linecap="round"
-             stroke-linejoin="round"
-             class="css-i6dzq1"
-        -->
       </defs>
     </svg>
   </body>

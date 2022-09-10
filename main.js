@@ -26,17 +26,21 @@ function getCurrentSong() {
 }
 
 function setNextSong() {
+  const old = state.currSong;
   state.currSong += 1;
   if (state.currSong >= state.songs.length) {
     state.currSong = 0;
   }
+  return old;
 }
 
 function setPrevSong() {
+  const old = state.currSong;
   state.currSong -= 1;
   if (state.currSong < 0) {
     state.currSong = state.songs.length - 1;
   }
+  return old;
 }
 
 function clearSongListItems() {
@@ -91,10 +95,7 @@ fileInput.addEventListener("change", e => {
         s.audio.play();
       } else {
         resetAudio(s);
-        setNextSong();
-        // @TODO(art): should probably be something like updateSelectedSong(),
-        // not redrawing the whole list
-        drawSongList();
+        updateSelectedSong(setNextSong());
         getCurrentSong().audio.play();
         // @TODO(art): check if buttons should be updated
       }
@@ -108,12 +109,10 @@ const songList = document.querySelector("#song-list") ?? assert(false);
 
 function drawSongList() {
   clearSongListItems();
-
   // @NOTE(art): we just need the length, do not need to check if shuffled
   for (let i = 0; i < state.songs.length; i++) {
     state.songListItems.push(createSongListItem(i));
   }
-
   songList.append(...state.songListItems);
 }
 
@@ -129,14 +128,17 @@ function createSongListItem(idx) {
 
   li.addEventListener("click", () => {
     resetAudio(getCurrentSong());
-
-    state.songListItems[state.currSong].style.background = "none";
-    li.style.background = "red";
-
+    const prevIdx = state.currSong;
     state.currSong = idx;
+    updateSelectedSong(prevIdx);
   });
 
   return li;
+}
+
+function updateSelectedSong(prevIdx) {
+  state.songListItems[prevIdx].style.background = "none";
+  state.songListItems[state.currSong].style.background = "red";
 }
 
 const btnPlay = document.querySelector("#btn-play") ?? assert(false);
@@ -170,10 +172,7 @@ btnPrevSong.addEventListener("click", () => {
   const isPrevPaused = prev.audio.paused;
   resetAudio(prev);
 
-  setPrevSong()
-  // @TODO(art): should probably be something like updateSelectedSong(),
-  // not redrawing the whole list
-  drawSongList();
+  updateSelectedSong(setPrevSong());
 
   if (!isPrevPaused) {
     getCurrentSong().audio.play();
@@ -188,10 +187,7 @@ btnNextSong.addEventListener("click", () => {
   const isPrevPaused = prev.audio.paused;
   resetAudio(prev);
 
-  setNextSong();
-  // @TODO(art): should probably be something like updateSelectedSong(),
-  // not redrawing the whole list
-  drawSongList();
+  updateSelectedSong(setNextSong());
 
   if (!isPrevPaused) {
     getCurrentSong().audio.play();

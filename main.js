@@ -26,21 +26,21 @@ function getCurrentSong() {
 }
 
 function setNextSong() {
-  const old = state.currSong;
+  const prev = state.currSong;
   state.currSong += 1;
   if (state.currSong >= state.songs.length) {
     state.currSong = 0;
   }
-  return old;
+  return prev;
 }
 
 function setPrevSong() {
-  const old = state.currSong;
+  const prev = state.currSong;
   state.currSong -= 1;
   if (state.currSong < 0) {
     state.currSong = state.songs.length - 1;
   }
-  return old;
+  return prev;
 }
 
 function clearSongListItems() {

@@ -50,9 +50,6 @@ function clearSongListItems() {
   state.songListItems = [];
 }
 
-// Debug
-window.state = state;
-
 const fileInput = document.querySelector("input[type=file]") ?? assert(false);
 fileInput.addEventListener("change", e => {
   const { files } = e.target;

@@ -79,6 +79,7 @@ fileInput.addEventListener("change", e => {
       if (tmp.length === filesLen - errcount) {
         state.songs.push(...tmp);
         drawSongList();
+        drawSongProgress();
       }
     });
 
@@ -89,13 +90,19 @@ fileInput.addEventListener("change", e => {
       errcount++;
     });
 
+    s.audio.addEventListener("timeupdate", () => {
+      updateSongProgress();
+    });
+
     s.audio.addEventListener("ended", () => {
       if (state.repeatEnabled) {
         resetAudio(s);
         s.audio.play();
       } else {
+        // @TODO(art): do not play next song if we reach the end
         resetAudio(s);
         updateSelectedSong(setNextSong());
+        drawSongProgress();
         getCurrentSong().audio.play();
         // @TODO(art): check if buttons should be updated
       }
@@ -131,6 +138,7 @@ function createSongListItem(idx) {
     const prevIdx = state.currSong;
     state.currSong = idx;
     updateSelectedSong(prevIdx);
+    drawSongProgress();
   });
 
   return li;
@@ -139,6 +147,60 @@ function createSongListItem(idx) {
 function updateSelectedSong(prevIdx) {
   state.songListItems[prevIdx].style.background = "none";
   state.songListItems[state.currSong].style.background = "red";
+}
+
+const songProgress = document.querySelector("#song-progress") ?? assert(false);
+
+function drawSongProgress() {
+  const song = getCurrentSong();
+
+  while (songProgress.firstChild) {
+    songProgress.firstChild.remove();
+  }
+
+  const curr = document.createElement("p");
+  curr.textContent = songTimeString(song.audio.currentTime);
+  songProgress.appendChild(curr);
+  songProgress.$currTime = curr;
+
+  const slider = createSlider({
+    value: song.audio.currentTime,
+    max: song.audio.duration
+  });
+  slider.classList.add("song-progress__slider");
+
+  slider.addEventListener("slider-dragging", () => {
+    slider.$dragging = true;
+  });
+
+  slider.addEventListener("slider-click", e => {
+    slider.$dragging = false;
+    song.audio.currentTime = e.detail;
+  });
+
+  songProgress.appendChild(slider);
+  songProgress.$slider = slider;
+
+  const end = document.createElement("p");
+  end.textContent = songTimeString(song.audio.duration);
+  songProgress.appendChild(end);
+}
+
+function updateSongProgress() {
+  const { currentTime } = getCurrentSong().audio;
+  const { $currTime, $slider } = songProgress;
+
+  $currTime.textContent = songTimeString(currentTime);
+  if (!$slider.$dragging) {
+    $slider.$input.value = currentTime;
+    $slider.$input.dispatchEvent(new Event("input"));
+  }
+}
+
+function songTimeString(time) {
+  const min = Math.floor(time / 60).toString().padStart(2, "0");
+  const sec = Math.floor(time % 60).toString().padStart(2, "0");
+  return min + ":" + sec;
 }
 
 const btnPlay = document.querySelector("#btn-play") ?? assert(false);
@@ -168,11 +230,13 @@ const btnPrevSong = document.querySelector("#btn-prev-song") ?? assert(false);
 btnPrevSong.addEventListener("click", () => {
   if (!state.songs.length) return;
 
+  // @TODO(art): reset current song if it played for some time?
   const prev = getCurrentSong();
   const isPrevPaused = prev.audio.paused;
   resetAudio(prev);
 
   updateSelectedSong(setPrevSong());
+  drawSongProgress();
 
   if (!isPrevPaused) {
     getCurrentSong().audio.play();
@@ -188,6 +252,7 @@ btnNextSong.addEventListener("click", () => {
   resetAudio(prev);
 
   updateSelectedSong(setNextSong());
+  drawSongProgress();
 
   if (!isPrevPaused) {
     getCurrentSong().audio.play();
@@ -235,100 +300,61 @@ function shuffle(arr) {
   return newArr;
 }
 
-class CustomSlider extends HTMLElement {
-  constructor() {
-    super();
+function createSlider({ value = 0, min = 0, max = 100, step = 1 }) {
+  // @NOTE(art): defined in css file, should be updated mutually
+  const THUMB_SIZE = 20;
 
-    const THUMB_SIZE = 20;
-
-    function calcFilled(value, min, max) {
-      return ((value - min) / (max - min)) * 100;
-    }
-
-    function calcOffset(filled) {
-      return THUMB_SIZE * filled * 0.01;
-    }
-
-    this.value = this.getAttribute("value") ?? 0;
-
-    const slider = document.createElement("div");
-    slider.classList.add("slider");
-
-    const track = document.createElement("div");
-    track.classList.add("track");
-
-    const input = document.createElement("input");
-    input.min = this.getAttribute("min") ?? 0;
-    input.max = this.getAttribute("max") ?? 100;
-    input.step = this.getAttribute("step") ?? 1;
-    input.value = this.value;
-    input.type = "range";
-
-    input.addEventListener("input", e => {
-      const { min, max, value } = e.target;
-
-      const filled = calcFilled(value, min, max);
-      const offset = calcOffset(filled);
-
-      track.style.setProperty("--track-filled-width", filled + "%");
-      track.style.setProperty("--thumb-offset", offset + "px");
-
-      this.value = value;
-    });
-
-    track.appendChild(input);
-    slider.appendChild(track);
-
-    const filled = calcFilled(input.value, input.min, input.max);
-    const offset = calcOffset(filled);
-
-    const style = document.createElement("style");
-    style.textContent = `
-      .slider {
-        padding: ${THUMB_SIZE / 2}px 0;
-      }
-
-      .track {
-        --track-filled-width: ${filled}%;
-        --thumb-offset: ${offset}px;
-
-        position: relative;
-        display: flex;
-        align-items: center;
-        background: gray;
-        height: 4px;
-      }
-
-      .track::before {
-        content: "";
-        position: absolute;
-        background: black;
-        width: var(--track-filled-width);
-        height: 100%;
-      }
-
-      .track::after {
-        content: "";
-        position: absolute;
-        background: red;
-        width: ${THUMB_SIZE}px;
-        height: ${THUMB_SIZE}px;
-        border-radius: 50%;
-        left: calc(var(--track-filled-width) - var(--thumb-offset));
-      }
-
-      input {
-        width: 100%;
-        height: 100%;
-        opacity: 0;
-        z-index: 1;
-      }
-    `;
-
-    this.attachShadow({ mode: "open" });
-    this.shadowRoot.append(style);
-    this.shadowRoot.append(slider);
+  function calcFilledWidth(value, min, max) {
+    return ((value - min) / (max - min)) * 100;
   }
-}
 
-customElements.define("custom-slider", CustomSlider);
+  function calcThumbOffset(filled) {
+    return THUMB_SIZE * filled * 0.01;
+  }
+
+  const slider = document.createElement("div");
+  slider.classList.add("slider");
+
+  const track = document.createElement("div");
+  track.classList.add("slider__track");
+
+  const input = document.createElement("input");
+  input.classList.add("slider__input");
+  input.min = min;
+  input.max = max;
+  input.value = value;
+  input.step = step;
+  input.type = "range";
+
+  const filled = calcFilledWidth(value, min, max);
+  const offset = calcThumbOffset(filled);
+  track.style.setProperty("--track-filled-width", filled + "%");
+  track.style.setProperty("--thumb-offset", offset + "px");
+
+  input.addEventListener("mousedown", () => {
+    slider.dispatchEvent(new CustomEvent("slider-dragging"));
+  });
+
+  input.addEventListener("click", e => {
+    const { value } = e.target;
+    input.dispatchEvent(new Event("input"));
+    slider.dispatchEvent(new CustomEvent("slider-click", { detail: value }));
+  });
+
+  input.addEventListener("input", e => {
+    const { min, max, value } = e.target;
+
+    const filled = calcFilledWidth(value, min, max);
+    const offset = calcThumbOffset(filled);
+
+    track.style.setProperty("--track-filled-width", filled + "%");
+    track.style.setProperty("--thumb-offset", offset + "px");
+  });
+
+  track.appendChild(input);
+  slider.appendChild(track);
+
+  slider.$input = input;
+
+  return slider;
+}

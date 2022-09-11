@@ -235,13 +235,100 @@ function shuffle(arr) {
   return newArr;
 }
 
-document.querySelector(".slider input").addEventListener("input", e => {
-  const { min, max, value, parentNode } = e.target;
-  // @NOTE(art): defined in css, if changed - needs to be updated
-  const THUMB_WIDTH = 20;
+class CustomSlider extends HTMLElement {
+  constructor() {
+    super();
 
-  const width = ((value - min) / (max - min)) * 100;
-  const offset = THUMB_WIDTH * width * 0.01;
-  parentNode.style.setProperty("--var-width", width.toString() + "%");
-  parentNode.style.setProperty("--var-thumb-offset", offset.toString() + "px");
-});
+    const THUMB_SIZE = 20;
+
+    function calcFilled(value, min, max) {
+      return ((value - min) / (max - min)) * 100;
+    }
+
+    function calcOffset(filled) {
+      return THUMB_SIZE * filled * 0.01;
+    }
+
+    this.value = this.getAttribute("value") ?? 0;
+
+    const slider = document.createElement("div");
+    slider.classList.add("slider");
+
+    const track = document.createElement("div");
+    track.classList.add("track");
+
+    const input = document.createElement("input");
+    input.min = this.getAttribute("min") ?? 0;
+    input.max = this.getAttribute("max") ?? 100;
+    input.step = this.getAttribute("step") ?? 1;
+    input.value = this.value;
+    input.type = "range";
+
+    input.addEventListener("input", e => {
+      const { min, max, value } = e.target;
+
+      const filled = calcFilled(value, min, max);
+      const offset = calcOffset(filled);
+
+      track.style.setProperty("--track-filled-width", filled + "%");
+      track.style.setProperty("--thumb-offset", offset + "px");
+
+      this.value = value;
+    });
+
+    track.appendChild(input);
+    slider.appendChild(track);
+
+    const filled = calcFilled(input.value, input.min, input.max);
+    const offset = calcOffset(filled);
+
+    const style = document.createElement("style");
+    style.textContent = `
+      .slider {
+        padding: ${THUMB_SIZE / 2}px 0;
+      }
+
+      .track {
+        --track-filled-width: ${filled}%;
+        --thumb-offset: ${offset}px;
+
+        position: relative;
+        display: flex;
+        align-items: center;
+        background: gray;
+        height: 4px;
+      }
+
+      .track::before {
+        content: "";
+        position: absolute;
+        background: black;
+        width: var(--track-filled-width);
+        height: 100%;
+      }
+
+      .track::after {
+        content: "";
+        position: absolute;
+        background: red;
+        width: ${THUMB_SIZE}px;
+        height: ${THUMB_SIZE}px;
+        border-radius: 50%;
+        left: calc(var(--track-filled-width) - var(--thumb-offset));
+      }
+
+      input {
+        width: 100%;
+        height: 100%;
+        opacity: 0;
+        z-index: 1;
+      }
+    `;
+
+    this.attachShadow({ mode: "open" });
+    this.shadowRoot.append(style);
+    this.shadowRoot.append(slider);
+  }
+}
+
+customElements.define("custom-slider", CustomSlider);

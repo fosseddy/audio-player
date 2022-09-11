@@ -325,7 +325,7 @@ function createSlider({ value = 0, min = 0, max = 100, step = 1 }) {
 
   const filled = calcFilledWidth(value, min, max);
   const offset = calcThumbOffset(filled);
-  track.style.setProperty("--track-filled-width", filled + "%");
+  track.style.setProperty("--filled-width", filled + "%");
   track.style.setProperty("--thumb-offset", offset + "px");
 
   input.addEventListener("mousedown", () => {
@@ -343,8 +343,7 @@ function createSlider({ value = 0, min = 0, max = 100, step = 1 }) {
 
     const filled = calcFilledWidth(value, min, max);
     const offset = calcThumbOffset(filled);
-
-    track.style.setProperty("--track-filled-width", filled + "%");
+    track.style.setProperty("--filled-width", filled + "%");
     track.style.setProperty("--thumb-offset", offset + "px");
   });
 

@@ -44,7 +44,7 @@ ul {
 }
 
 .slider__track {
-  --track-filled-width: 0%;
+  --filled-width: 0%;
   --thumb-offset: 0px;
 
   position: relative;
@@ -58,7 +58,7 @@ ul {
   content: "";
   position: absolute;
   background: black;
-  width: var(--track-filled-width);
+  width: var(--filled-width);
   height: 100%;
 }
 
@@ -69,7 +69,7 @@ ul {
   width: 20px;
   height: 20px;
   border-radius: 50%;
-  left: calc(var(--track-filled-width) - var(--thumb-offset));
+  left: calc(var(--filled-width) - var(--thumb-offset));
 }
 
 .slider__input {

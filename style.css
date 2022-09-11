@@ -39,6 +39,46 @@ ul {
   stroke: black;
 }
 
+.slider {
+  padding: 2rem;
+  border: 1px solid black;
+}
+
+.slider .track {
+  --var-width: 0%;
+  --var-thumb-offset: 0px;
+  background: gray;
+  display: flex;
+  align-items: center;
+  position: relative;
+  background: gray;
+  height: 4px;
+}
+
+.slider .track::before {
+  content: "";
+  position: absolute;
+  background: black;
+  width: var(--var-width);
+  height: 100%;
+}
+
+.slider .track::after {
+  content: "";
+  position: absolute;
+  background: red;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  left: calc(var(--var-width) - var(--var-thumb-offset));
+}
+
+.slider input {
+  width: 100%;
+  opacity: 0;
+  z-index: 1;
+}
+
 /* DEBUG */
 .b { border: 1px solid black; }
 .b-red { border-color: red; }

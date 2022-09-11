@@ -234,3 +234,14 @@ function shuffle(arr) {
 
   return newArr;
 }
+
+document.querySelector(".slider input").addEventListener("input", e => {
+  const { min, max, value, parentNode } = e.target;
+  // @NOTE(art): defined in css, if changed - needs to be updated
+  const THUMB_WIDTH = 20;
+
+  const width = ((value - min) / (max - min)) * 100;
+  const offset = THUMB_WIDTH * width * 0.01;
+  parentNode.style.setProperty("--var-width", width.toString() + "%");
+  parentNode.style.setProperty("--var-thumb-offset", offset.toString() + "px");
+});

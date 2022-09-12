@@ -68,6 +68,7 @@ fileInput.addEventListener("change", e => {
       if (tmp.length === filesLen - errcount) {
         state.songs.push(...tmp);
         drawSongList();
+        btnVolume.$slider.$updateValue(getCurrentSong().audio.volume);
         drawSongProgress();
       }
     });
@@ -268,6 +269,14 @@ btnShuffle.addEventListener("click", () => {
   drawSongList();
 });
 
+const btnVolume = document.querySelector("#btn-volume") ?? assert(false);
+btnVolume.$slider = createSlider({ max: 1, step: 0.1 });
+btnVolume.$slider.style.width = "100px";
+btnVolume.$slider.addEventListener("slider-change", e => {
+  getCurrentSong().audio.volume = e.detail;
+});
+btnVolume.appendChild(btnVolume.$slider);
+
 function resetAudio(song) {
   song.audio.pause();
   song.audio.currentTime = 0;
@@ -340,6 +349,8 @@ function createSlider({ value = 0, min = 0, max = 100, step = 1 }) {
     const offset = calcThumbOffset(filled);
     track.style.setProperty("--filled-width", filled + "%");
     track.style.setProperty("--thumb-offset", offset + "px");
+
+    slider.dispatchEvent(new CustomEvent("slider-change", { detail: value }));
   });
 
   track.appendChild(input);

@@ -47,9 +47,6 @@ fileInput.addEventListener("change", e => {
   const { files } = e.target;
   if (!files.length) return;
 
-  // @NOTE(art): save for later use in event handler, because we lose it
-  // after reset target value in the end of the function
-  const filesLen = files.length;
   const tmp = [];
   let errcount = 0;
 
@@ -65,11 +62,12 @@ fileInput.addEventListener("change", e => {
       // @NOTE(art): save songs only when all are loaded
       // @TODO(art): show some loading indicator to user?
       // @TODO(art): songs are saved out of order
-      if (tmp.length === filesLen - errcount) {
+      if (tmp.length === files.length - errcount) {
         state.songs.push(...tmp);
         drawSongList();
         btnVolume.$slider.$updateValue(getCurrentSong().audio.volume);
         drawSongProgress();
+        e.target.value = "";
       }
     });
 
@@ -98,8 +96,6 @@ fileInput.addEventListener("change", e => {
       }
     });
   }
-
-  e.target.value = "";
 });
 
 const songList = document.querySelector("#song-list") ?? assert(false);
@@ -109,13 +105,15 @@ function drawSongList() {
   for (const it of songList.$items) {
     it.remove();
   }
-  songList.$items = [];
+
+  const items = [];
 
   for (let i = 0; i < state.songs.length; i++) {
-    songList.$items.push(createSongListItem(i));
+    items.push(createSongListItem(i));
   }
 
-  songList.append(...songList.$items);
+  songList.append(...items);
+  songList.$items = items;
 }
 
 function createSongListItem(idx) {

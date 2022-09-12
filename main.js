@@ -5,41 +5,67 @@ function assert(cond, msg = null) {
 }
 
 const state = {
+  audio: new Audio(),
+
   songs: [],
-  currSong: 0, // first song by default
+  songIdx: 0, // first song by default
 
   shuffleEnabled: false,
-  shuffledSongs: [],
-
-  repeatEnabled: false
+  shuffledSongs: []
 };
 
 function getSongs() {
   return state.shuffleEnabled ? state.shuffledSongs : state.songs;
 }
 
-function getCurrentSong() {
+function getSong(idx = state.songIdx) {
   assert(state.songs.length > 0);
-  assert(state.currSong >= 0 && state.currSong < state.songs.length);
-  return getSongs()[state.currSong];
+  assert(idx >= 0 && idx < state.songs.length);
+  return getSongs()[idx];
 }
 
-function setNextSong() {
-  const prev = state.currSong;
-  state.currSong += 1;
-  if (state.currSong >= state.songs.length) {
-    state.currSong = 0;
-  }
-  return prev;
+function loadSong() {
+  state.audio.src = getSong().src;
+  state.audio.load();
+}
+
+function isAudioReady() {
+  return state.audio.readyState === HTMLMediaElement.HAVE_ENOUGH_DATA;
+}
+
+function resetAudio() {
+  state.audio.pause();
+  state.audio.currentTime = 0;
 }
 
 function setPrevSong() {
-  const prev = state.currSong;
-  state.currSong -= 1;
-  if (state.currSong < 0) {
-    state.currSong = state.songs.length - 1;
+  const prev = state.songIdx;
+  state.songIdx -= 1;
+  if (state.songIdx < 0) {
+    state.songIdx = state.songs.length - 1;
   }
   return prev;
+}
+
+function setNextSong() {
+  const prev = state.songIdx;
+  state.songIdx += 1;
+  if (state.songIdx >= state.songs.length) {
+    state.songIdx = 0;
+  }
+  return prev;
+}
+
+function loadPrevSong() {
+  const prevIdx = setPrevSong();
+  loadSong();
+  return prevIdx;
+}
+
+function loadNextSong() {
+  const prevIdx = setNextSong();
+  loadSong();
+  return prevIdx;
 }
 
 const fileInput = document.querySelector("input[type=file]") ?? assert(false);
@@ -47,55 +73,44 @@ fileInput.addEventListener("change", e => {
   const { files } = e.target;
   if (!files.length) return;
 
-  const tmp = [];
-  let errcount = 0;
-
   for (const f of files) {
     const s = {
       name: f.name,
-      audio: new Audio(URL.createObjectURL(f))
-    }
+      src: URL.createObjectURL(f)
+    };
 
-    s.audio.addEventListener("canplaythrough", () => {
-      tmp.push(s);
-
-      // @NOTE(art): save songs only when all are loaded
-      // @TODO(art): show some loading indicator to user?
-      // @TODO(art): songs are saved out of order
-      if (tmp.length === files.length - errcount) {
-        state.songs.push(...tmp);
-        drawSongList();
-        btnVolume.$slider.$updateValue(getCurrentSong().audio.volume);
-        drawSongProgress();
-        e.target.value = "";
-      }
-    });
-
-    s.audio.addEventListener("error", () => {
-      // @TODO(art): show error to user
-      console.error(s.audio.error);
-      URL.revokeObjectURL(s.audio.src);
-      errcount++;
-    });
-
-    s.audio.addEventListener("timeupdate", () => {
-      updateSongProgress();
-    });
-
-    s.audio.addEventListener("ended", () => {
-      if (state.repeatEnabled) {
-        resetAudio(s);
-        s.audio.play();
-      } else {
-        // @TODO(art): do not play next song if we reach the end
-        resetAudio(s);
-        updateSelectedSong(setNextSong());
-        drawSongProgress();
-        getCurrentSong().audio.play();
-        // @TODO(art): check if buttons should be updated
-      }
-    });
+    state.songs.push(s);
   }
+
+  loadSong();
+  drawSongList();
+
+  e.target.value = "";
+});
+
+state.audio.addEventListener("canplaythrough", () => {
+  console.log("canplaythrough");
+});
+
+state.audio.addEventListener("timeupdate", () => {
+  console.log("timeupdate");
+});
+
+state.audio.addEventListener("ended", () => {
+  console.log("ended");
+  const isLast = state.songs.length - 1 === state.songIdx;
+
+  updateSelectedSong(loadNextSong());
+
+  if (!isLast) {
+    state.audio.play();
+  }
+});
+
+state.audio.addEventListener("error", () => {
+  console.log("error");
+  // @TODO(art): show error in ui?
+  console.error(state.audio.error);
 });
 
 const songList = document.querySelector("#song-list") ?? assert(false);
@@ -118,20 +133,21 @@ function drawSongList() {
 
 function createSongListItem(idx) {
   const li = document.createElement("li");
-  li.textContent = getSongs()[idx].name;
+  li.textContent = getSong(idx).name;
 
   li.style.padding = "1rem";
 
-  if (state.currSong === idx) {
+  if (state.songIdx === idx) {
     li.style.background = "red";
   }
 
   li.addEventListener("click", () => {
-    resetAudio(getCurrentSong());
-    const prevIdx = state.currSong;
-    state.currSong = idx;
-    updateSelectedSong(prevIdx);
-    drawSongProgress();
+    if (state.songIdx === idx) return;
+    resetAudio();
+    const prev = state.songIdx;
+    state.songIdx = idx;
+    loadSong();
+    updateSelectedSong(prev);
   });
 
   return li;
@@ -139,110 +155,106 @@ function createSongListItem(idx) {
 
 function updateSelectedSong(prevIdx) {
   songList.$items[prevIdx].style.background = "none";
-  songList.$items[state.currSong].style.background = "red";
+  songList.$items[state.songIdx].style.background = "red";
 }
 
-const songProgress = document.querySelector("#song-progress") ?? assert(false);
-
-function drawSongProgress() {
-  const song = getCurrentSong();
-
-  while (songProgress.firstChild) {
-    songProgress.firstChild.remove();
-  }
-
-  const curr = document.createElement("p");
-  curr.textContent = secondsToTime(song.audio.currentTime);
-  songProgress.appendChild(curr);
-  songProgress.$currTime = curr;
-
-  const slider = createSlider({
-    value: song.audio.currentTime,
-    max: song.audio.duration
-  });
-  slider.classList.add("song-progress__slider");
-
-  slider.addEventListener("slider-click", e => {
-    song.audio.currentTime = e.detail;
-  });
-
-  songProgress.appendChild(slider);
-  songProgress.$slider = slider;
-
-  const end = document.createElement("p");
-  end.textContent = secondsToTime(song.audio.duration);
-  songProgress.appendChild(end);
-}
-
-function updateSongProgress() {
-  const { currentTime } = getCurrentSong().audio;
-  const { $currTime, $slider } = songProgress;
-
-  $currTime.textContent = secondsToTime(currentTime);
-  if (!$slider.$dragging) {
-    $slider.$updateValue(currentTime);
-  }
-}
-
-function secondsToTime(s) {
-  const min = Math.floor(s / 60).toString().padStart(2, "0");
-  const sec = Math.floor(s % 60).toString().padStart(2, "0");
-  return min + ":" + sec;
-}
+//const songProgress = document.querySelector("#song-progress") ?? assert(false);
+//
+//function drawSongProgress() {
+//  const song = getCurrentSong();
+//
+//  while (songProgress.firstChild) {
+//    songProgress.firstChild.remove();
+//  }
+//
+//  const curr = document.createElement("p");
+//  curr.textContent = secondsToTime(song.audio.currentTime);
+//  songProgress.appendChild(curr);
+//  songProgress.$currTime = curr;
+//
+//  const slider = createSlider({
+//    value: song.audio.currentTime,
+//    max: song.audio.duration
+//  });
+//  slider.classList.add("song-progress__slider");
+//
+//  slider.addEventListener("slider-click", e => {
+//    song.audio.currentTime = e.detail;
+//  });
+//
+//  songProgress.appendChild(slider);
+//  songProgress.$slider = slider;
+//
+//  const end = document.createElement("p");
+//  end.textContent = secondsToTime(song.audio.duration);
+//  songProgress.appendChild(end);
+//}
+//
+//function updateSongProgress() {
+//  const { currentTime } = getCurrentSong().audio;
+//  const { $currTime, $slider } = songProgress;
+//
+//  $currTime.textContent = secondsToTime(currentTime);
+//  if (!$slider.$dragging) {
+//    $slider.$updateValue(currentTime);
+//  }
+//}
+//
+//function secondsToTime(s) {
+//  const min = Math.floor(s / 60).toString().padStart(2, "0");
+//  const sec = Math.floor(s % 60).toString().padStart(2, "0");
+//  return min + ":" + sec;
+//}
 
 const btnPlay = document.querySelector("#btn-play") ?? assert(false);
 btnPlay.addEventListener("click", () => {
-  if (!state.songs.length) return;
-  getCurrentSong().audio.play();
+  if (!isAudioReady()) return;
+  state.audio.play();
 });
 
 const btnPause = document.querySelector("#btn-pause") ?? assert(false);
 btnPause.addEventListener("click", () => {
-  if (!state.songs.length) return;
-  getCurrentSong().audio.pause();
-});
-
-const btnRepeat = document.querySelector("#btn-repeat") ?? assert(false);
-btnRepeat.addEventListener("click", () => {
-  if (state.repeatEnabled) {
-    state.repeatEnabled = false;
-    btnRepeat.style.background = "buttonface";
-  } else {
-    state.repeatEnabled = true;
-    btnRepeat.style.background = "green";
-  }
+  if (!isAudioReady()) return;
+  state.audio.pause();
 });
 
 const btnPrevSong = document.querySelector("#btn-prev-song") ?? assert(false);
 btnPrevSong.addEventListener("click", () => {
-  if (!state.songs.length) return;
+  if (state.songs.length <= 1) return;
 
-  // @TODO(art): reset current song if it played for some time?
-  const prev = getCurrentSong();
-  const isPrevPaused = prev.audio.paused;
-  resetAudio(prev);
+  const wasPlaying = !state.audio.paused;
+  resetAudio();
 
-  updateSelectedSong(setPrevSong());
-  drawSongProgress();
+  // @TODO(art): just reset current song if it played for some time?
+  updateSelectedSong(loadPrevSong());
 
-  if (!isPrevPaused) {
-    getCurrentSong().audio.play();
+  if (wasPlaying) {
+    state.audio.play();
   }
 });
 
 const btnNextSong = document.querySelector("#btn-next-song") ?? assert(false);
 btnNextSong.addEventListener("click", () => {
-  if (!state.songs.length) return;
+  if (state.songs.length <= 1) return;
 
-  const prev = getCurrentSong();
-  const isPrevPaused = prev.audio.paused;
-  resetAudio(prev);
+  const wasPlaying = !state.audio.paused;
+  resetAudio();
 
-  updateSelectedSong(setNextSong());
-  drawSongProgress();
+  updateSelectedSong(loadNextSong());
 
-  if (!isPrevPaused) {
-    getCurrentSong().audio.play();
+  if (wasPlaying) {
+    state.audio.play();
+  }
+});
+
+const btnRepeat = document.querySelector("#btn-repeat") ?? assert(false);
+btnRepeat.addEventListener("click", () => {
+  if (state.audio.loop) {
+    state.audio.loop = false;
+    btnRepeat.style.background = "buttonface";
+  } else {
+    state.audio.loop = true;
+    btnRepeat.style.background = "green";
   }
 });
 
@@ -250,7 +262,7 @@ const btnShuffle = document.querySelector("#btn-shuffle") ?? assert(false);
 btnShuffle.addEventListener("click", () => {
   if (!state.songs.length) return;
 
-  resetAudio(getCurrentSong());
+  resetAudio();
 
   if (state.shuffleEnabled) {
     state.shuffleEnabled = false;
@@ -262,7 +274,8 @@ btnShuffle.addEventListener("click", () => {
     btnShuffle.style.background = "green";
   }
 
-  state.currSong = 0;
+  state.songIdx = 0;
+  loadSong();
 
   drawSongList();
 });
@@ -270,15 +283,11 @@ btnShuffle.addEventListener("click", () => {
 const btnVolume = document.querySelector("#btn-volume") ?? assert(false);
 btnVolume.$slider = createSlider({ max: 1, step: 0.1 });
 btnVolume.$slider.style.width = "100px";
+btnVolume.$slider.$updateValue(state.audio.volume);
 btnVolume.$slider.addEventListener("slider-change", e => {
-  getCurrentSong().audio.volume = e.detail;
+  state.audio.volume = e.detail;
 });
 btnVolume.appendChild(btnVolume.$slider);
-
-function resetAudio(song) {
-  song.audio.pause();
-  song.audio.currentTime = 0;
-}
 
 function shuffle(arr) {
   const newArr = [...arr];

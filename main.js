@@ -7,7 +7,6 @@ function assert(cond, msg = null) {
 const state = {
   songs: [],
   currSong: 0, // first song by default
-  songListItems: [],
 
   shuffleEnabled: false,
   shuffledSongs: [],
@@ -41,13 +40,6 @@ function setPrevSong() {
     state.currSong = state.songs.length - 1;
   }
   return prev;
-}
-
-function clearSongListItems() {
-  for (const it of state.songListItems) {
-    it.remove();
-  }
-  state.songListItems = [];
 }
 
 const fileInput = document.querySelector("input[type=file]") ?? assert(false);
@@ -110,14 +102,19 @@ fileInput.addEventListener("change", e => {
 });
 
 const songList = document.querySelector("#song-list") ?? assert(false);
+songList.$items = [];
 
 function drawSongList() {
-  clearSongListItems();
-  // @NOTE(art): we just need the length, do not need to check if shuffled
-  for (let i = 0; i < state.songs.length; i++) {
-    state.songListItems.push(createSongListItem(i));
+  for (const it of songList.$items) {
+    it.remove();
   }
-  songList.append(...state.songListItems);
+  songList.$items = [];
+
+  for (let i = 0; i < state.songs.length; i++) {
+    songList.$items.push(createSongListItem(i));
+  }
+
+  songList.append(...songList.$items);
 }
 
 function createSongListItem(idx) {
@@ -142,8 +139,8 @@ function createSongListItem(idx) {
 }
 
 function updateSelectedSong(prevIdx) {
-  state.songListItems[prevIdx].style.background = "none";
-  state.songListItems[state.currSong].style.background = "red";
+  songList.$items[prevIdx].style.background = "none";
+  songList.$items[state.currSong].style.background = "red";
 }
 
 const songProgress = document.querySelector("#song-progress") ?? assert(false);
@@ -156,7 +153,7 @@ function drawSongProgress() {
   }
 
   const curr = document.createElement("p");
-  curr.textContent = songTimeString(song.audio.currentTime);
+  curr.textContent = secondsToTime(song.audio.currentTime);
   songProgress.appendChild(curr);
   songProgress.$currTime = curr;
 
@@ -166,12 +163,7 @@ function drawSongProgress() {
   });
   slider.classList.add("song-progress__slider");
 
-  slider.addEventListener("slider-dragging", () => {
-    slider.$dragging = true;
-  });
-
   slider.addEventListener("slider-click", e => {
-    slider.$dragging = false;
     song.audio.currentTime = e.detail;
   });
 
@@ -179,7 +171,7 @@ function drawSongProgress() {
   songProgress.$slider = slider;
 
   const end = document.createElement("p");
-  end.textContent = songTimeString(song.audio.duration);
+  end.textContent = secondsToTime(song.audio.duration);
   songProgress.appendChild(end);
 }
 
@@ -187,16 +179,15 @@ function updateSongProgress() {
   const { currentTime } = getCurrentSong().audio;
   const { $currTime, $slider } = songProgress;
 
-  $currTime.textContent = songTimeString(currentTime);
+  $currTime.textContent = secondsToTime(currentTime);
   if (!$slider.$dragging) {
-    $slider.$input.value = currentTime;
-    $slider.$input.dispatchEvent(new Event("input"));
+    $slider.$updateValue(currentTime);
   }
 }
 
-function songTimeString(time) {
-  const min = Math.floor(time / 60).toString().padStart(2, "0");
-  const sec = Math.floor(time % 60).toString().padStart(2, "0");
+function secondsToTime(s) {
+  const min = Math.floor(s / 60).toString().padStart(2, "0");
+  const sec = Math.floor(s % 60).toString().padStart(2, "0");
   return min + ":" + sec;
 }
 
@@ -298,7 +289,7 @@ function shuffle(arr) {
 }
 
 function createSlider({ value = 0, min = 0, max = 100, step = 1 }) {
-  // @NOTE(art): defined in css file, should be updated mutually
+  // @NOTE(art): defined in css file, must be updated mutually
   const THUMB_SIZE = 20;
 
   function calcFilledWidth(value, min, max) {
@@ -329,13 +320,17 @@ function createSlider({ value = 0, min = 0, max = 100, step = 1 }) {
   track.style.setProperty("--thumb-offset", offset + "px");
 
   input.addEventListener("mousedown", () => {
-    slider.dispatchEvent(new CustomEvent("slider-dragging"));
+    slider.$dragging = true;
+  });
+
+  input.addEventListener("mouseup", () => {
+    slider.$dragging = false;
   });
 
   input.addEventListener("click", e => {
-    const { value } = e.target;
-    input.dispatchEvent(new Event("input"));
-    slider.dispatchEvent(new CustomEvent("slider-click", { detail: value }));
+    slider.dispatchEvent(new CustomEvent("slider-click", {
+      detail: e.target.value
+    }));
   });
 
   input.addEventListener("input", e => {
@@ -351,6 +346,11 @@ function createSlider({ value = 0, min = 0, max = 100, step = 1 }) {
   slider.appendChild(track);
 
   slider.$input = input;
+  slider.$dragging = false;
+  slider.$updateValue = function(val) {
+    slider.$input.value = val;
+    slider.$input.dispatchEvent(new Event("input"));
+  }
 
   return slider;
 }

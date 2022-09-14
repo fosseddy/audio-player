@@ -39,6 +39,16 @@ ul {
   stroke: black;
 }
 
+.song-progress {
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+
+.song-progress__slider {
+  width: 100%;
+}
+
 .slider {
   padding: 20px 0;
 }
@@ -77,16 +87,6 @@ ul {
   height: 100%;
   opacity: 0;
   z-index: 1;
-}
-
-.song-progress {
-  display: flex;
-  align-items: center;
-  width: 100%;
-}
-
-.song-progress__slider {
-  width: 100%;
 }
 
 /* DEBUG */

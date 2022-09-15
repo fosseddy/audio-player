@@ -14,7 +14,7 @@ const state = {
   shuffleEnabled: false,
   shuffledSongs: [],
 
-  open: true
+  songListExpanded: true
 };
 
 function getSongs() {
@@ -170,7 +170,7 @@ function updateSelectedSong(prevIdx) {
 
   songList.$items[state.songIdx].style.background = "red";
 
-  if (!state.open) {
+  if (!state.songListExpanded) {
     songList.$items[state.songIdx].style.position = "sticky";
     songList.$items[state.songIdx].style.top = "0px";
     songList.$items[state.songIdx].style.bottom = "0px";
@@ -305,12 +305,12 @@ btnVolume.$slider.addEventListener("slider-change", e => {
 btnVolume.appendChild(btnVolume.$slider);
 
 const btnBurger = document.querySelector("#btn-burger") ?? assert(false);
-if (state.open) {
+if (state.songListExpanded) {
   btnBurger.style.background = "green";
 }
 btnBurger.addEventListener("click", () => {
-  if (state.open) {
-    state.open = false;
+  if (state.songListExpanded) {
+    state.songListExpanded = false;
     btnBurger.style.background = "buttonface";
 
     songList.style.maxHeight = "55px";
@@ -322,7 +322,7 @@ btnBurger.addEventListener("click", () => {
       songList.$items[state.songIdx].style.bottom = "0px";
     }
   } else {
-    state.open = true;
+    state.songListExpanded = true;
     btnBurger.style.background = "green";
 
     songList.style.maxHeight = "300px";

@@ -146,6 +146,7 @@ function drawSongList() {
 function createSongListItem(idx) {
   const li = document.createElement("li");
   li.classList.add("song-list__item");
+  // @TODO(art): Check ui for long names
   li.textContent = getSong(idx).name;
 
   if (state.songIdx === idx) {

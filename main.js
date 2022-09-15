@@ -6,6 +6,7 @@ function assert(cond, msg = null) {
 
 const state = {
   audio: new Audio(),
+  audioChanged: false,
 
   songs: [],
   songIdx: 0, // first song by default
@@ -90,10 +91,19 @@ fileInput.addEventListener("change", e => {
 
 state.audio.addEventListener("canplaythrough", () => {
   console.log("canplaythrough");
+  if (state.audioChanged) {
+    drawSongProgress();
+  }
 });
 
 state.audio.addEventListener("timeupdate", () => {
   console.log("timeupdate");
+  // @NOTE(art): in our case if after timeupdate audio is not ready, that
+  // means we loaded new source
+  state.audioChanged = !isAudioReady();
+  if (!state.audioChanged) {
+    updateSongProgress();
+  }
 });
 
 state.audio.addEventListener("ended", () => {
@@ -158,53 +168,51 @@ function updateSelectedSong(prevIdx) {
   songList.$items[state.songIdx].style.background = "red";
 }
 
-//const songProgress = document.querySelector("#song-progress") ?? assert(false);
-//
-//function drawSongProgress() {
-//  const song = getCurrentSong();
-//
-//  while (songProgress.firstChild) {
-//    songProgress.firstChild.remove();
-//  }
-//
-//  const curr = document.createElement("p");
-//  curr.textContent = secondsToTime(song.audio.currentTime);
-//  songProgress.appendChild(curr);
-//  songProgress.$currTime = curr;
-//
-//  const slider = createSlider({
-//    value: song.audio.currentTime,
-//    max: song.audio.duration
-//  });
-//  slider.classList.add("song-progress__slider");
-//
-//  slider.addEventListener("slider-click", e => {
-//    song.audio.currentTime = e.detail;
-//  });
-//
-//  songProgress.appendChild(slider);
-//  songProgress.$slider = slider;
-//
-//  const end = document.createElement("p");
-//  end.textContent = secondsToTime(song.audio.duration);
-//  songProgress.appendChild(end);
-//}
-//
-//function updateSongProgress() {
-//  const { currentTime } = getCurrentSong().audio;
-//  const { $currTime, $slider } = songProgress;
-//
-//  $currTime.textContent = secondsToTime(currentTime);
-//  if (!$slider.$dragging) {
-//    $slider.$updateValue(currentTime);
-//  }
-//}
-//
-//function secondsToTime(s) {
-//  const min = Math.floor(s / 60).toString().padStart(2, "0");
-//  const sec = Math.floor(s % 60).toString().padStart(2, "0");
-//  return min + ":" + sec;
-//}
+const songProgress = document.querySelector("#song-progress") ?? assert(false);
+
+function drawSongProgress() {
+  while (songProgress.firstChild) {
+    songProgress.firstChild.remove();
+  }
+
+  const curr = document.createElement("p");
+  curr.textContent = secondsToTime(state.audio.currentTime);
+  songProgress.appendChild(curr);
+  songProgress.$currTime = curr;
+
+  const slider = createSlider({
+    value: state.audio.currentTime,
+    max: state.audio.duration
+  });
+  slider.classList.add("song-progress__slider");
+
+  slider.addEventListener("slider-click", e => {
+    state.audio.currentTime = e.detail;
+  });
+
+  songProgress.appendChild(slider);
+  songProgress.$slider = slider;
+
+  const end = document.createElement("p");
+  end.textContent = secondsToTime(state.audio.duration);
+  songProgress.appendChild(end);
+}
+
+function updateSongProgress() {
+  const { currentTime } = state.audio;
+  const { $currTime, $slider } = songProgress;
+
+  $currTime.textContent = secondsToTime(currentTime);
+  if (!$slider.$dragging) {
+    $slider.$updateValue(currentTime);
+  }
+}
+
+function secondsToTime(s) {
+  const min = Math.floor(s / 60).toString().padStart(2, "0");
+  const sec = Math.floor(s % 60).toString().padStart(2, "0");
+  return min + ":" + sec;
+}
 
 const btnPlay = document.querySelector("#btn-play") ?? assert(false);
 btnPlay.addEventListener("click", () => {

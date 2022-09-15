@@ -184,7 +184,6 @@ function drawSongProgress() {
     value: state.audio.currentTime,
     max: state.audio.duration
   });
-  slider.classList.add("song-progress__slider");
 
   slider.addEventListener("slider-click", e => {
     state.audio.currentTime = e.detail;
@@ -290,7 +289,6 @@ btnShuffle.addEventListener("click", () => {
 
 const btnVolume = document.querySelector("#btn-volume") ?? assert(false);
 btnVolume.$slider = createSlider({ max: 1, step: 0.1 });
-btnVolume.$slider.style.width = "100px";
 btnVolume.$slider.$updateValue(state.audio.volume);
 btnVolume.$slider.addEventListener("slider-change", e => {
   state.audio.volume = e.detail;
@@ -313,7 +311,6 @@ function shuffle(arr) {
 }
 
 function createSlider({ value = 0, min = 0, max = 100, step = 1 }) {
-  // @NOTE(art): defined in css file, must be updated mutually
   const THUMB_SIZE = 20;
 
   function calcFilledWidth(value, min, max) {
@@ -325,6 +322,7 @@ function createSlider({ value = 0, min = 0, max = 100, step = 1 }) {
   }
 
   const slider = document.createElement("div");
+  slider.style.setProperty("--thumb-size", THUMB_SIZE + "px");
   slider.classList.add("slider");
 
   const track = document.createElement("div");
@@ -340,8 +338,8 @@ function createSlider({ value = 0, min = 0, max = 100, step = 1 }) {
 
   const filled = calcFilledWidth(value, min, max);
   const offset = calcThumbOffset(filled);
-  track.style.setProperty("--filled-width", filled + "%");
-  track.style.setProperty("--thumb-offset", offset + "px");
+  slider.style.setProperty("--filled-width", filled + "%");
+  slider.style.setProperty("--thumb-offset", offset + "px");
 
   input.addEventListener("mousedown", () => {
     slider.$dragging = true;

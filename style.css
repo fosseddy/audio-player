@@ -45,18 +45,20 @@ ul {
   width: 100%;
 }
 
-.song-progress__slider {
-  width: 100%;
+.volume {
+  width: 100px;
 }
 
 .slider {
+  --filled-width: 0%;
+  --thumb-size: 0px;
+  --thumb-offset: 0px;
+
   padding: 20px 0;
+  width: 100%;
 }
 
 .slider__track {
-  --filled-width: 0%;
-  --thumb-offset: 0px;
-
   position: relative;
   display: flex;
   align-items: center;
@@ -76,8 +78,8 @@ ul {
   content: "";
   position: absolute;
   background: red;
-  width: 20px;
-  height: 20px;
+  width: var(--thumb-size);
+  height: var(--thumb-size);
   border-radius: 50%;
   left: calc(var(--filled-width) - var(--thumb-offset));
 }

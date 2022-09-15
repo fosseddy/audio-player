@@ -39,6 +39,17 @@ ul {
   stroke: black;
 }
 
+.song-list {
+  max-height: 300px;
+  overflow-y: auto;
+  transition: all .2s ease-out;
+}
+
+.song-list__item {
+  height: 55px;
+  padding: 1rem;
+}
+
 .song-progress {
   display: flex;
   align-items: center;

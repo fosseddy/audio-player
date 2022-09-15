@@ -12,7 +12,9 @@ const state = {
   songIdx: 0, // first song by default
 
   shuffleEnabled: false,
-  shuffledSongs: []
+  shuffledSongs: [],
+
+  open: true
 };
 
 function getSongs() {
@@ -143,9 +145,8 @@ function drawSongList() {
 
 function createSongListItem(idx) {
   const li = document.createElement("li");
+  li.classList.add("song-list__item");
   li.textContent = getSong(idx).name;
-
-  li.style.padding = "1rem";
 
   if (state.songIdx === idx) {
     li.style.background = "red";
@@ -165,7 +166,15 @@ function createSongListItem(idx) {
 
 function updateSelectedSong(prevIdx) {
   songList.$items[prevIdx].style.background = "none";
+  songList.$items[prevIdx].style.position = "static";
+
   songList.$items[state.songIdx].style.background = "red";
+
+  if (!state.open) {
+    songList.$items[state.songIdx].style.position = "sticky";
+    songList.$items[state.songIdx].style.top = "0px";
+    songList.$items[state.songIdx].style.bottom = "0px";
+  }
 }
 
 const songProgress = document.querySelector("#song-progress") ?? assert(false);
@@ -294,6 +303,37 @@ btnVolume.$slider.addEventListener("slider-change", e => {
   state.audio.volume = e.detail;
 });
 btnVolume.appendChild(btnVolume.$slider);
+
+const btnBurger = document.querySelector("#btn-burger") ?? assert(false);
+if (state.open) {
+  btnBurger.style.background = "green";
+}
+btnBurger.addEventListener("click", () => {
+  if (state.open) {
+    state.open = false;
+    btnBurger.style.background = "buttonface";
+
+    songList.style.maxHeight = "55px";
+    songList.style.overflowY = "hidden";
+
+    if (state.songs.length) {
+      songList.$items[state.songIdx].style.position = "sticky";
+      songList.$items[state.songIdx].style.top = "0px";
+      songList.$items[state.songIdx].style.bottom = "0px";
+    }
+  } else {
+    state.open = true;
+    btnBurger.style.background = "green";
+
+    songList.style.maxHeight = "300px";
+    songList.style.overflowY = "auto";
+
+    if (state.songs.length) {
+      songList.$items[state.songIdx].style.position = "static";
+      songList.$items[state.songIdx].scrollIntoView();
+    }
+  }
+});
 
 function shuffle(arr) {
   const newArr = [...arr];

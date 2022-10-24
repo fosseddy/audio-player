@@ -57,7 +57,18 @@ ul {
 }
 
 .volume {
+  display: flex;
+}
+
+.volume__slider {
   width: 100px;
+}
+
+.volume__btn {
+}
+
+.hidden {
+  display: none;
 }
 
 .slider {

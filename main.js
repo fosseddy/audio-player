@@ -14,7 +14,8 @@ const state = {
   shuffleEnabled: false,
   shuffledSongs: [],
 
-  songListExpanded: true
+  songListExpanded: true,
+  volumeVisible: false
 };
 
 function getSongs() {
@@ -297,13 +298,26 @@ btnShuffle.addEventListener("click", () => {
   drawSongList();
 });
 
-const btnVolume = document.querySelector("#btn-volume") ?? assert(false);
-btnVolume.$slider = createSlider({ max: 1, step: 0.1 });
-btnVolume.$slider.$updateValue(state.audio.volume);
-btnVolume.$slider.addEventListener("slider-change", e => {
+const volumeSlider = document.querySelector("#volume-slider") ?? assert(false);
+volumeSlider.$slider = createSlider({ max: 1, step: 0.1 });
+volumeSlider.$slider.$updateValue(state.audio.volume);
+volumeSlider.$slider.addEventListener("slider-change", e => {
   state.audio.volume = e.detail;
 });
-btnVolume.appendChild(btnVolume.$slider);
+volumeSlider.appendChild(volumeSlider.$slider);
+
+const btnVolume = document.querySelector("#btn-volume") ?? assert(false);
+btnVolume.addEventListener("click", () => {
+  if (state.volumeVisible) {
+    state.volumeVisible = false;
+    btnVolume.style.background = "buttonface";
+    volumeSlider.classList.add("hidden");
+  } else {
+    state.volumeVisible = true;
+    btnVolume.style.background = "green";
+    volumeSlider.classList.remove("hidden");
+  }
+});
 
 const btnBurger = document.querySelector("#btn-burger") ?? assert(false);
 if (state.songListExpanded) {
